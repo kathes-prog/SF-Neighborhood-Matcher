@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SF Neighborhood Matcher</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    background: #fff;
+    color: #1a1a1a;
+    line-height: 1.5;
+  }
+
+  header {
+    background: #1D9E75;
+    color: #fff;
+    padding: 2rem 2rem 1.5rem;
+  }
+  header h1 { font-size: 1.8rem; font-weight: 700; }
+  header p { opacity: 0.88; margin-top: 0.3rem; font-size: 0.95rem; }
+
+  nav {
+    background: #178a64;
+    padding: 0 2rem;
+    display: flex;
+    gap: 0;
+  }
+  nav a {
+    color: rgba(255,255,255,0.75);
+    text-decoration: none;
+    padding: 0.6rem 1.1rem;
+    font-size: 0.88rem;
+    font-weight: 500;
+    border-bottom: 3px solid transparent;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  nav a:hover { color: #fff; }
+  nav a.active { color: #fff; border-bottom-color: #fff; }
+
+  .section {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+  }
+
+  .section-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: #111;
+    border-bottom: 2px solid #1D9E75;
+    padding-bottom: 0.5rem;
+    display: inline-block;
+  }
+
+  /* ── Quiz form ── */
+  .quiz-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem 2rem;
+  }
+
+  .field { display: flex; flex-direction: column; gap: 0.4rem; }
+  .field label { font-weight: 600; font-size: 0.9rem; color: #333; }
+  .field-hint { font-size: 0.8rem; color: #888; }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: #e0e0e0;
+    outline: none;
+    cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: #1D9E75;
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+
+  .range-display {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1D9E75;
+  }
+
+  select {
+    border: 1.5px solid #d0d0d0;
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+    font-family: inherit;
+    background: #fff;
+    cursor: pointer;
+    outline: none;
+  }
+  select:focus { border-color: #1D9E75; }
+
+  .toggle-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.25rem 0;
+  }
+  .toggle-wrap input[type="checkbox"] {
+    width: 18px; height: 18px;
+    accent-color: #1D9E75;
+    cursor: pointer;
+  }
+  .toggle-wrap span { font-size: 0.9rem; color: #333; }
+
+  .lifestyle-section {
+    grid-column: 1 / -1;
+  }
+  .lifestyle-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+  .lifestyle-item { display: flex; flex-direction: column; gap: 0.4rem; }
+  .lifestyle-item label { font-size: 0.85rem; font-weight: 600; color: #333; }
+  .btn-group { display: flex; gap: 0; }
+  .btn-group button {
+    flex: 1;
+    padding: 0.4rem 0.5rem;
+    border: 1.5px solid #d0d0d0;
+    background: #fff;
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    font-family: inherit;
+  }
+  .btn-group button:first-child { border-radius: 6px 0 0 6px; }
+  .btn-group button:last-child { border-radius: 0 6px 6px 0; }
+  .btn-group button:not(:first-child) { border-left: none; }
+  .btn-group button.active {
+    background: #1D9E75;
+    color: #fff;
+    border-color: #1D9E75;
+    font-weight: 600;
+  }
+  .btn-group button:not(.active):hover { background: #f0faf6; border-color: #1D9E75; }
+
+  .find-btn {
+    margin-top: 2rem;
+    background: #1D9E75;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 0.85rem 2.5rem;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    display: block;
+  }
+  .find-btn:hover { background: #178a64; transform: translateY(-1px); }
+  .find-btn:active { transform: translateY(0); }
+
+  /* ── Results ── */
+  #results-section { background: #f9fafb; }
+
+  .results-layout {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+  }
+
+  .cards-col { flex: 6; min-width: 0; }
+  .map-col { flex: 4; position: sticky; top: 1rem; }
+
+  #map {
+    height: 520px;
+    border-radius: 10px;
+    border: 1.5px solid #e0e0e0;
+    overflow: hidden;
+  }
+
+  .result-card {
+    background: #fff;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+    cursor: pointer;
+    transition: box-shadow 0.15s;
+  }
+  .result-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem 0.75rem;
+  }
+  .rank-badge {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: #1D9E75;
+    color: #fff;
+    font-weight: 800;
+    font-size: 0.85rem;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .card-name { font-size: 1.05rem; font-weight: 700; flex: 1; }
+  .card-pct { font-size: 1.6rem; font-weight: 800; color: #1D9E75; }
+
+  .score-bar-wrap { padding: 0 1.25rem 0.75rem; }
+  .score-bar-bg {
+    height: 7px;
+    background: #efefef;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .score-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s ease;
+  }
+
+  .card-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0 1.25rem 0.75rem;
+  }
+  .pill {
+    background: #f3f4f6;
+    border-radius: 20px;
+    padding: 0.25rem 0.65rem;
+    font-size: 0.78rem;
+    color: #444;
+    font-weight: 500;
+  }
+  .pill strong { color: #111; }
+
+  .best-for {
+    padding: 0 1.25rem 0.85rem;
+    font-size: 0.82rem;
+    color: #666;
+  }
+  .best-for span {
+    background: #e8f7f2;
+    color: #1D9E75;
+    font-weight: 600;
+    border-radius: 4px;
+    padding: 0.1rem 0.4rem;
+  }
+
+  .expand-toggle {
+    width: 100%;
+    background: #f9fafb;
+    border: none;
+    border-top: 1.5px solid #efefef;
+    padding: 0.5rem;
+    font-size: 0.8rem;
+    color: #888;
+    cursor: pointer;
+    font-family: inherit;
+    text-align: center;
+    transition: background 0.1s;
+  }
+  .expand-toggle:hover { background: #f0f0f0; }
+
+  .dim-breakdown {
+    display: none;
+    padding: 0.75rem 1.25rem 1rem;
+    border-top: 1.5px solid #efefef;
+    background: #fafafa;
+  }
+  .dim-breakdown.open { display: block; }
+  .dim-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+  .dim-label { font-size: 0.8rem; width: 100px; flex-shrink: 0; color: #555; }
+  .dim-bar-bg {
+    flex: 1;
+    height: 6px;
+    background: #e8e8e8;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .dim-bar-fill { height: 100%; background: #1D9E75; border-radius: 3px; }
+  .dim-val { font-size: 0.8rem; font-weight: 600; width: 28px; text-align: right; color: #333; }
+
+  .no-results {
+    text-align: center;
+    padding: 3rem;
+    color: #888;
+    font-size: 0.95rem;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .quiz-grid { grid-template-columns: 1fr; }
+    .results-layout { flex-direction: column; }
+    .map-col { position: static; width: 100%; }
+    #map { height: 320px; }
+    .charts-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>SF Neighborhood Matcher</h1>
+  <p>Find your perfect San Francisco neighborhood based on budget and lifestyle</p>
+</header>
+
+<nav>
+  <a href="index.html" class="active">Neighborhood Matcher</a>
+  <a href="statistics.html">Neighborhood Statistics</a>
+</nav>
+
+<!-- Section 1: Quiz -->
+<div class="section" id="quiz-section">
+  <div class="section-title">Your Preferences</div>
+  <form id="quiz-form">
+    <div class="quiz-grid">
+
+      <div class="field">
+        <label>Monthly Rent Budget</label>
+        <span class="range-display" id="rent-display">$3,000</span>
+        <input type="range" id="rent" min="1500" max="6000" step="100" value="3000">
+        <span class="field-hint">$1,500 — $6,000</span>
+      </div>
+
+      <div class="field">
+        <label>Max Commute Time</label>
+        <span class="range-display" id="commute-display">20 min</span>
+        <input type="range" id="commute" min="0" max="60" step="5" value="20">
+        <span class="field-hint">0 — 60 minutes</span>
+      </div>
+
+      <div class="field">
+        <label>Work Location</label>
+        <select id="work-location">
+          <option value="remote">Remote / Work from home</option>
+          <option value="Mission">Mission</option>
+          <option value="Marina">Marina</option>
+          <option value="SoMa">SoMa</option>
+          <option value="Noe Valley">Noe Valley</option>
+          <option value="Haight-Ashbury">Haight-Ashbury</option>
+          <option value="Pacific Heights">Pacific Heights</option>
+          <option value="Richmond">Richmond</option>
+          <option value="Sunset">Sunset</option>
+          <option value="Hayes Valley">Hayes Valley</option>
+          <option value="Tenderloin">Tenderloin</option>
+          <option value="Castro">Castro</option>
+          <option value="Bernal Heights">Bernal Heights</option>
+          <option value="North Beach">North Beach</option>
+          <option value="Potrero Hill">Potrero Hill</option>
+          <option value="Outer Mission">Outer Mission</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Car Ownership</label>
+        <div class="toggle-wrap">
+          <input type="checkbox" id="has-car">
+          <span>I own a car</span>
+        </div>
+      </div>
+
+      <div class="lifestyle-section">
+        <div class="section-title" style="font-size:1rem; margin-bottom:1rem;">Lifestyle Priorities</div>
+        <div class="lifestyle-grid" id="lifestyle-grid"></div>
+      </div>
+    </div>
+
+    <button type="submit" class="find-btn">Find my neighborhood →</button>
+  </form>
+</div>
+
+<!-- Section 2: Results -->
+<div class="section" id="results-section" style="display:none;">
+  <div class="section-title">Your Top Matches</div>
+  <div class="results-layout">
+    <div class="cards-col" id="cards-col"></div>
+    <div class="map-col">
+      <div id="map"></div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+// ── Lifestyle categories ──────────────────────────────────────────────────
+const LIFESTYLE_CATS = [
+  { key: 'dining',    label: 'Dining out & nightlife' },
+  { key: 'outdoors',  label: 'Outdoor access & parks' },
+  { key: 'walkable',  label: 'Walkability & no car needed' },
+  { key: 'quiet',     label: 'Quiet & residential' },
+  { key: 'arts',      label: 'Arts & culture scene' },
+  { key: 'fitness',   label: 'Gym & fitness access' },
+];
+
+const lifestyleValues = {};
+LIFESTYLE_CATS.forEach(c => { lifestyleValues[c.key] = 0; });
+
+function buildLifestyleGrid() {
+  const grid = document.getElementById('lifestyle-grid');
+  LIFESTYLE_CATS.forEach(cat => {
+    const item = document.createElement('div');
+    item.className = 'lifestyle-item';
+    item.innerHTML = `
+      <label>${cat.label}</label>
+      <div class="btn-group" data-key="${cat.key}">
+        <button type="button" data-val="0" class="active">Not important</button>
+        <button type="button" data-val="0.5">Somewhat</button>
+        <button type="button" data-val="1">Very important</button>
+      </div>`;
+    grid.appendChild(item);
+  });
+  grid.querySelectorAll('.btn-group').forEach(group => {
+    group.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        group.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        lifestyleValues[group.dataset.key] = parseFloat(btn.dataset.val);
+      });
+    });
+  });
+}
+
+// ── Slider display ────────────────────────────────────────────────────────
+const rentSlider = document.getElementById('rent');
+const rentDisplay = document.getElementById('rent-display');
+rentSlider.addEventListener('input', () => {
+  rentDisplay.textContent = '$' + Number(rentSlider.value).toLocaleString();
+});
+
+const commuteSlider = document.getElementById('commute');
+const commuteDisplay = document.getElementById('commute-display');
+commuteSlider.addEventListener('input', () => {
+  commuteDisplay.textContent = commuteSlider.value + ' min';
+});
+
+// ── Haversine distance ────────────────────────────────────────────────────
+function haversineKm(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+// ── Scoring ───────────────────────────────────────────────────────────────
+function scoreNeighborhoods(prefs, data) {
+  return Object.entries(data).map(([name, n]) => {
+    // Rent fit (25%)
+    let rentScore;
+    if (n.avg_rent <= prefs.maxRent) {
+      rentScore = 100;
+    } else if (n.avg_rent >= prefs.maxRent * 1.5) {
+      rentScore = 0;
+    } else {
+      rentScore = 100 * (1 - (n.avg_rent - prefs.maxRent) / (prefs.maxRent * 0.5));
+    }
+
+    // Safety (20% base)
+    const safetyScore = 100 - n.crime_rate;
+
+    // Commute — only scored when a specific work neighborhood is chosen
+    const isRemote = prefs.workLocation === 'remote';
+    let commuteScore = null;
+    if (!isRemote) {
+      const workN = data[prefs.workLocation];
+      const km = haversineKm(n.lat, n.lng, workN.lat, workN.lng);
+      const estMin = km * 3;
+      if (estMin <= prefs.maxCommute) {
+        commuteScore = 100;
+      } else if (estMin >= prefs.maxCommute * 2) {
+        commuteScore = 0;
+      } else {
+        commuteScore = 100 * (1 - (estMin - prefs.maxCommute) / prefs.maxCommute);
+      }
+    }
+
+    // Lifestyle (25% base)
+    const dimScores = {
+      dining:   n.nightlife_density,
+      outdoors: (n.parks_nearby / 6) * 100,
+      walkable: n.walkability,
+      quiet:    100 - n.noise_complaints,
+      arts:     n.nightlife_density,
+      fitness:  (n.parks_nearby / 6) * 100,
+    };
+    let lifestyleScore = 100;
+    let totalWeight = 0;
+    let weightedSum = 0;
+    LIFESTYLE_CATS.forEach(cat => {
+      const w = lifestyleValues[cat.key];
+      if (w > 0) {
+        weightedSum += w * dimScores[cat.key];
+        totalWeight += w;
+      }
+    });
+    lifestyleScore = totalWeight > 0 ? weightedSum / totalWeight : 100;
+
+    // Parking (10% base)
+    const parkingScore = prefs.hasCar ? (100 - n.parking_difficulty) : 100;
+
+    // Dynamic weights derived from user inputs:
+    //   quiet priority → boosts safety weight
+    //   overall lifestyle engagement → boosts lifestyle weight
+    //   car ownership → boosts parking weight
+    //   remote work → commute weight is 0
+    const lifestyleEngagement = LIFESTYLE_CATS.reduce((sum, cat) => sum + lifestyleValues[cat.key], 0) / LIFESTYLE_CATS.length;
+    const rawW = {
+      rent:      0.20 + 0.10,                                      // fixed anchor
+      safety:    0.10 + lifestyleValues['quiet'] * 0.15,           // 0.10 – 0.25
+      commute:   isRemote ? 0 : 0.20,
+      lifestyle: 0.15 + lifestyleEngagement * 0.20,                // 0.15 – 0.35
+      parking:   prefs.hasCar ? 0.15 : 0.05,
+    };
+    const wTotal = Object.values(rawW).reduce((a, b) => a + b, 0);
+    const w = Object.fromEntries(Object.entries(rawW).map(([k, v]) => [k, v / wTotal]));
+
+    // Dimension breakdown for display
+    const dims = {
+      'Rent fit':  rentScore,
+      'Safety':    safetyScore,
+      'Lifestyle': lifestyleScore,
+      'Parking':   parkingScore,
+      ...(isRemote ? {} : { 'Commute': commuteScore }),
+    };
+
+    const final = Math.round(
+      rentScore      * w.rent +
+      safetyScore    * w.safety +
+      (commuteScore ?? 0) * w.commute +
+      lifestyleScore * w.lifestyle +
+      parkingScore   * w.parking
+    );
+
+    // Best-for: find top 2 raw neighborhood attributes
+    const attrs = [
+      { label: 'walkability',  val: n.walkability },
+      { label: 'dining',       val: n.nightlife_density },
+      { label: 'safety',       val: 100 - n.crime_rate },
+      { label: 'transit',      val: n.transit_score },
+      { label: 'parks',        val: (n.parks_nearby / 6) * 100 },
+      { label: 'quiet',        val: 100 - n.noise_complaints },
+    ];
+    attrs.sort((a, b) => b.val - a.val);
+    const bestFor = attrs.slice(0, 2).map(a => a.label).join(' + ');
+
+    return { name, score: final, data: n, dims, bestFor };
+  }).sort((a, b) => b.score - a.score);
+}
+
+// ── Map ───────────────────────────────────────────────────────────────────
+let map = null;
+let markers = [];
+
+function initMap() {
+  if (map) return;
+  map = L.map('map').setView([37.7749, -122.4194], 12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors',
+    maxZoom: 18,
+  }).addTo(map);
+}
+
+function scoreColor(score) {
+  if (score > 75) return '#1D9E75';
+  if (score >= 50) return '#BA7517';
+  return '#E24B4A';
+}
+
+function renderMap(ranked, allData) {
+  markers.forEach(m => m.remove());
+  markers = [];
+
+  Object.entries(allData).forEach(([name, n]) => {
+    const result = ranked.find(r => r.name === name);
+    const score = result ? result.score : null;
+    const rank = result ? ranked.indexOf(result) + 1 : null;
+    const isTop = rank === 1;
+    const color = score !== null ? scoreColor(score) : '#aaa';
+    const radius = isTop ? 18 : score !== null && rank <= 5 ? 12 : 8;
+
+    const marker = L.circleMarker([n.lat, n.lng], {
+      radius,
+      fillColor: color,
+      color: '#fff',
+      weight: 2,
+      fillOpacity: 0.88,
+    }).addTo(map);
+
+    const popupText = score !== null
+      ? `<strong>${name}</strong><br>Match: ${score}%`
+      : `<strong>${name}</strong>`;
+    marker.bindPopup(popupText);
+    markers.push(marker);
+  });
+}
+
+// ── Results cards ─────────────────────────────────────────────────────────
+function crimeLabel(rate) {
+  if (rate < 35) return 'Low';
+  if (rate < 65) return 'Medium';
+  return 'High';
+}
+
+function renderCards(top5) {
+  const col = document.getElementById('cards-col');
+  col.innerHTML = '';
+
+  if (!top5.length) {
+    col.innerHTML = '<div class="no-results">No results yet. Fill out the form above.</div>';
+    return;
+  }
+
+  top5.forEach((r, i) => {
+    const color = scoreColor(r.score);
+    const card = document.createElement('div');
+    card.className = 'result-card';
+    card.innerHTML = `
+      <div class="card-header">
+        <div class="rank-badge">${i + 1}</div>
+        <div class="card-name">${r.name}</div>
+        <div class="card-pct">${r.score}%</div>
+      </div>
+      <div class="score-bar-wrap">
+        <div class="score-bar-bg">
+          <div class="score-bar-fill" style="width:${r.score}%; background:${color};"></div>
+        </div>
+      </div>
+      <div class="card-pills">
+        <div class="pill">Rent <strong>$${r.data.avg_rent.toLocaleString()}</strong></div>
+        <div class="pill">Crime <strong>${crimeLabel(r.data.crime_rate)}</strong></div>
+        <div class="pill">Transit <strong>${r.data.transit_score}</strong></div>
+        <div class="pill">Walk <strong>${r.data.walkability}</strong></div>
+      </div>
+      <div class="best-for">Best for: <span>${r.bestFor}</span></div>
+      <button class="expand-toggle" data-idx="${i}">Show score breakdown ▾</button>
+      <div class="dim-breakdown" id="dim-${i}">
+        ${Object.entries(r.dims).map(([label, val]) => `
+          <div class="dim-row">
+            <div class="dim-label">${label}</div>
+            <div class="dim-bar-bg"><div class="dim-bar-fill" style="width:${Math.round(val)}%"></div></div>
+            <div class="dim-val">${Math.round(val)}</div>
+          </div>`).join('')}
+      </div>`;
+    col.appendChild(card);
+  });
+
+  col.querySelectorAll('.expand-toggle').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const idx = btn.dataset.idx;
+      const breakdown = document.getElementById(`dim-${idx}`);
+      const open = breakdown.classList.toggle('open');
+      btn.textContent = open ? 'Hide score breakdown ▴' : 'Show score breakdown ▾';
+    });
+  });
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+const NEIGHBORHOOD_DATA = {
+  "Mission":        { "avg_rent": 3295, "crime_rate": 100, "noise_complaints": 100, "parks_nearby": 3, "transit_score": 88, "nightlife_density": 91, "parking_difficulty": 65, "walkability": 94, "lat": 37.7599, "lng": -122.4148 },
+  "Marina":         { "avg_rent": 3900, "crime_rate": 16,  "noise_complaints": 16,  "parks_nearby": 5, "transit_score": 72, "nightlife_density": 65, "parking_difficulty": 70, "walkability": 85, "lat": 37.8030, "lng": -122.4364 },
+  "SoMa":           { "avg_rent": 3792, "crime_rate": 86,  "noise_complaints": 41,  "parks_nearby": 2, "transit_score": 95, "nightlife_density": 78, "parking_difficulty": 80, "walkability": 90, "lat": 37.7785, "lng": -122.3948 },
+  "Noe Valley":     { "avg_rent": 3695, "crime_rate": 0,   "noise_complaints": 2,   "parks_nearby": 4, "transit_score": 70, "nightlife_density": 40, "parking_difficulty": 45, "walkability": 80, "lat": 37.7502, "lng": -122.4333 },
+  "Haight-Ashbury": { "avg_rent": 3100, "crime_rate": 4,   "noise_complaints": 16,  "parks_nearby": 5, "transit_score": 80, "nightlife_density": 70, "parking_difficulty": 60, "walkability": 88, "lat": 37.7692, "lng": -122.4481 },
+  "Pacific Heights": { "avg_rent": 4200, "crime_rate": 6,  "noise_complaints": 8,   "parks_nearby": 4, "transit_score": 68, "nightlife_density": 35, "parking_difficulty": 55, "walkability": 82, "lat": 37.7925, "lng": -122.4382 },
+  "Richmond":       { "avg_rent": 2900, "crime_rate": 8,   "noise_complaints": 13,  "parks_nearby": 6, "transit_score": 74, "nightlife_density": 45, "parking_difficulty": 35, "walkability": 78, "lat": 37.7785, "lng": -122.4830 },
+  "Sunset":         { "avg_rent": 2800, "crime_rate": 18,  "noise_complaints": 18,  "parks_nearby": 5, "transit_score": 68, "nightlife_density": 30, "parking_difficulty": 30, "walkability": 72, "lat": 37.7527, "lng": -122.4877 },
+  "Hayes Valley":   { "avg_rent": 4060, "crime_rate": 16,  "noise_complaints": 22,  "parks_nearby": 2, "transit_score": 90, "nightlife_density": 80, "parking_difficulty": 75, "walkability": 95, "lat": 37.7759, "lng": -122.4245 },
+  "Tenderloin":     { "avg_rent": 2547, "crime_rate": 98,  "noise_complaints": 65,  "parks_nearby": 1, "transit_score": 92, "nightlife_density": 60, "parking_difficulty": 85, "walkability": 88, "lat": 37.7839, "lng": -122.4128 },
+  "Castro":         { "avg_rent": 3400, "crime_rate": 16,  "noise_complaints": 22,  "parks_nearby": 3, "transit_score": 82, "nightlife_density": 85, "parking_difficulty": 60, "walkability": 92, "lat": 37.7609, "lng": -122.4350 },
+  "Bernal Heights": { "avg_rent": 3200, "crime_rate": 10,  "noise_complaints": 8,   "parks_nearby": 4, "transit_score": 65, "nightlife_density": 38, "parking_difficulty": 40, "walkability": 75, "lat": 37.7431, "lng": -122.4156 },
+  "North Beach":    { "avg_rent": 3600, "crime_rate": 19,  "noise_complaints": 10,  "parks_nearby": 2, "transit_score": 85, "nightlife_density": 88, "parking_difficulty": 82, "walkability": 96, "lat": 37.8061, "lng": -122.4103 },
+  "Potrero Hill":   { "avg_rent": 3450, "crime_rate": 5,   "noise_complaints": 7,   "parks_nearby": 3, "transit_score": 70, "nightlife_density": 42, "parking_difficulty": 38, "walkability": 76, "lat": 37.7590, "lng": -122.4003 },
+  "Outer Mission":  { "avg_rent": 2600, "crime_rate": 2,   "noise_complaints": 0,   "parks_nearby": 3, "transit_score": 66, "nightlife_density": 35, "parking_difficulty": 32, "walkability": 70, "lat": 37.7214, "lng": -122.4397 }
+};
+
+let neighborhoodData = NEIGHBORHOOD_DATA;
+
+buildLifestyleGrid();
+initMap();
+renderMap([], neighborhoodData);
+
+document.getElementById('quiz-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  if (!neighborhoodData) return;
+
+  const prefs = {
+    maxRent: parseInt(rentSlider.value),
+    maxCommute: parseInt(commuteSlider.value),
+    workLocation: document.getElementById('work-location').value,
+    hasCar: document.getElementById('has-car').checked,
+  };
+
+  const ranked = scoreNeighborhoods(prefs, neighborhoodData);
+  const top5 = ranked.slice(0, 5);
+
+  document.getElementById('results-section').style.display = '';
+  renderCards(top5);
+  renderMap(ranked, neighborhoodData);
+
+  document.getElementById('results-section').scrollIntoView({ behavior: 'smooth' });
+
+  // Invalidate map size after display
+  setTimeout(() => map && map.invalidateSize(), 200);
+});
+</script>
+</body>
+</html>

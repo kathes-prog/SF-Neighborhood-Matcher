@@ -1,0 +1,158 @@
+/* ============================================================
+   SF Neighborhood Matcher — Colors & Type Foundations
+   Source: kathes-prog/Team-6-Data-Science-Project
+   ============================================================ */
+
+:root {
+  /* ─── Brand color ─────────────────────────────────────────── */
+  --brand-green:        #1D9E75;   /* primary — headers, CTAs, accents */
+  --brand-green-dark:   #178a64;   /* hover / nav bar */
+  --brand-green-tint:   #e8f7f2;   /* "best-for" pill bg, soft surface */
+  --brand-green-wash:   #f0faf6;   /* button hover wash */
+
+  /* ─── Score / status colors (used on map + score bars) ────── */
+  --score-good:   #1D9E75;   /* match > 75% */
+  --score-mid:    #BA7517;   /* match 50–75% — amber-brown */
+  --score-bad:    #E24B4A;   /* match < 50% — coral red */
+
+  /* ─── Neutrals (text) ─────────────────────────────────────── */
+  --fg-1: #111111;   /* highest-emphasis: section titles, card pct strong */
+  --fg-2: #1a1a1a;   /* body text (page default) */
+  --fg-3: #333333;   /* labels, secondary text */
+  --fg-4: #444444;   /* pill body */
+  --fg-5: #555555;   /* dim labels, table secondary */
+  --fg-6: #666666;   /* tertiary copy ("Best for:") */
+  --fg-mute: #888888; /* hints, expand toggle, empty state */
+
+  /* ─── Neutrals (surfaces & borders) ───────────────────────── */
+  --bg:           #ffffff;   /* page */
+  --bg-soft:      #fafafa;   /* breakdown panel */
+  --bg-results:   #f9fafb;   /* results section bg, expand toggle bg */
+  --bg-pill:      #f3f4f6;   /* pills, table th */
+  --bg-track:     #efefef;   /* score bar track, breakdown dividers */
+  --bg-track-2:   #e8e8e8;   /* dim bar track */
+  --bg-input:     #e0e0e0;   /* range track, borders */
+  --bg-hover:     #f0f0f0;   /* expand toggle hover */
+  --bg-divider:   #f0f0f0;   /* table row border */
+
+  --border:        #e0e0e0;  /* cards, charts, map */
+  --border-strong: #d0d0d0;  /* selects, segmented buttons (inactive) */
+
+  /* ─── On-brand (text over brand-green) ────────────────────── */
+  --on-brand:        #ffffff;
+  --on-brand-mute:   rgba(255, 255, 255, 0.75);  /* inactive nav links */
+  --on-brand-soft:   rgba(255, 255, 255, 0.88);  /* header subhead */
+
+  /* ─── Shadows ─────────────────────────────────────────────── */
+  --shadow-thumb:  0 1px 4px rgba(0,0,0,0.2);    /* range slider thumb */
+  --shadow-card:   0 4px 16px rgba(0,0,0,0.08);  /* result card hover */
+
+  /* ─── Radii ───────────────────────────────────────────────── */
+  --r-pill:    20px;   /* score pills, "best-for" pill */
+  --r-card:    10px;   /* result cards, map, chart boxes */
+  --r-btn:     8px;    /* big CTA */
+  --r-input:   6px;    /* selects, segmented buttons */
+  --r-bar:     4px;    /* score bar fill */
+  --r-bar-sm:  3px;    /* range track, dim bar */
+  --r-circle:  50%;    /* range thumb, rank badge */
+
+  /* ─── Spacing rhythm (tracks rem values used in source) ───── */
+  --space-1:  0.25rem;  /*  4px — rank badge gap pieces */
+  --space-2:  0.4rem;   /*  6px — field label gap */
+  --space-3:  0.5rem;   /*  8px — pill gap, table cell */
+  --space-4:  0.75rem;  /* 12px — dim row gap */
+  --space-5:  1rem;     /* 16px — card spacing, lifestyle grid */
+  --space-6:  1.25rem;  /* 20px — card horizontal padding */
+  --space-7:  1.5rem;   /* 24px — section vertical, results gap */
+  --space-8:  2rem;     /* 32px — header padding, section padding */
+
+  /* ─── Layout ──────────────────────────────────────────────── */
+  --content-max: 1100px;
+  --map-h:       520px;
+  --map-h-sm:    320px;
+
+  /* ─── Type — family ──────────────────────────────────────────
+     Source uses the system font stack. No webfonts are loaded —
+     this is a deliberate "OS-native, data-utility" choice. */
+  --font-sans:  system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+                Arial, "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+  --font-mono:  ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* ─── Type — weights ──────────────────────────────────────── */
+  --w-regular: 400;
+  --w-medium:  500;
+  --w-semi:    600;
+  --w-bold:    700;
+  --w-black:   800;   /* rank badge, big % readout */
+
+  /* ─── Type — size scale (rem; html base = 16px) ───────────── */
+  --t-xs:    0.78rem;   /* ~12.5px — segmented btn, pills, dim row */
+  --t-sm:    0.82rem;   /* ~13px   — table body, best-for */
+  --t-md:    0.85rem;   /* ~13.6px — lifestyle item label */
+  --t-base:  0.88rem;   /* ~14px   — nav */
+  --t-body:  0.9rem;    /* ~14.4px — labels, selects, toggle text */
+  --t-md2:   0.95rem;   /* ~15.2px — header subtitle, empty state */
+  --t-cta:   1rem;      /* 16px    — big CTA, range display */
+  --t-cardname: 1.05rem;/* 16.8px  — result card name */
+  --t-title: 1.25rem;   /* 20px    — section titles */
+  --t-pct:   1.6rem;    /* 25.6px  — big match-percent readout */
+  --t-h1:    1.8rem;    /* 28.8px  — page header h1 */
+
+  /* ─── Type — line-height ──────────────────────────────────── */
+  --lh-tight: 1.2;
+  --lh-base:  1.5;
+}
+
+/* ============================================================
+   Semantic element styles
+   ============================================================ */
+
+html, body {
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--fg-2);
+  line-height: var(--lh-base);
+}
+
+/* Headings — page-header H1 sits on green background, all caps NOT used. */
+.h1, h1 {
+  font-size: var(--t-h1);
+  font-weight: var(--w-bold);
+  line-height: var(--lh-tight);
+  color: var(--on-brand);
+}
+
+/* Section title — left-aligned, green underline accent, inline-block.   */
+.h2, h2, .section-title {
+  font-size: var(--t-title);
+  font-weight: var(--w-bold);
+  color: var(--fg-1);
+  border-bottom: 2px solid var(--brand-green);
+  padding-bottom: 0.5rem;
+  display: inline-block;
+}
+
+/* Sub-section title (Lifestyle Priorities, Correlation Matrix). */
+.h3, h3 {
+  font-size: var(--t-md2);
+  font-weight: var(--w-semi);
+  color: var(--fg-3);
+}
+
+/* Body, label, hint. */
+.body, p { font-size: var(--t-body); color: var(--fg-3); }
+.label   { font-size: var(--t-body); font-weight: var(--w-semi); color: var(--fg-3); }
+.hint    { font-size: var(--t-xs);   color: var(--fg-mute); }
+
+/* Header subtitle (white-over-green, ~88% opacity). */
+.header-sub { font-size: var(--t-md2); color: var(--on-brand-soft); }
+
+/* Big % readout used on result cards and similar metrics. */
+.metric-pct { font-size: var(--t-pct); font-weight: var(--w-black); color: var(--brand-green); }
+
+/* Numeric/data emphasis inside pills. */
+.pill        { font-size: var(--t-xs); font-weight: var(--w-medium); color: var(--fg-4); }
+.pill strong { color: var(--fg-1); font-weight: var(--w-bold); }
+
+/* Mono — not used in source, but available for code/data snippets. */
+code, kbd, samp, pre { font-family: var(--font-mono); font-size: 0.9em; }
