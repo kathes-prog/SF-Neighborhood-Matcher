@@ -36,8 +36,8 @@
         outdoors: (n.parks_nearby / 6) * 100,
         walkable: n.walkability,
         quiet:    100 - n.noise_complaints,
-        arts:     n.nightlife_density,
-        fitness:  (n.parks_nearby / 6) * 100,
+        arts:     n.nightlife_density * 0.4 + n.cultural_pois * 0.6,
+        fitness:  (n.parks_nearby / 6) * 100 * 0.3 + n.gym_density * 0.7,
       };
       let totalWeight = 0, weightedSum = 0;
       CATS.forEach(cat => {
