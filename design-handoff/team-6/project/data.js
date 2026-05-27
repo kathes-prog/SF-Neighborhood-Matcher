@@ -1,6 +1,6 @@
 // Verbatim from source/neighborhoods.json.
 window.NEIGHBORHOOD_DATA = {
-  "Mission":         { avg_rent: 3295, crime_rate: 100, noise_complaints: 100, parks_nearby: 3, transit_score: 88, nightlife_density: 91, parking_difficulty: 65, walkability: 94, cultural_pois: 85, gym_density: 80, lat: 37.7599, lng: -122.4148 },
+  "Mission":         { avg_rent: 3295, crime_rate: 72,  noise_complaints: 78,  parks_nearby: 3, transit_score: 88, nightlife_density: 91, parking_difficulty: 65, walkability: 94, cultural_pois: 85, gym_density: 80, lat: 37.7599, lng: -122.4148 },
   "Marina":          { avg_rent: 3900, crime_rate: 16,  noise_complaints: 16,  parks_nearby: 5, transit_score: 72, nightlife_density: 65, parking_difficulty: 70, walkability: 85, cultural_pois: 55, gym_density: 90, lat: 37.8030, lng: -122.4364 },
   "SoMa":            { avg_rent: 3792, crime_rate: 86,  noise_complaints: 41,  parks_nearby: 2, transit_score: 95, nightlife_density: 78, parking_difficulty: 80, walkability: 90, cultural_pois: 90, gym_density: 78, lat: 37.7785, lng: -122.3948 },
   "Noe Valley":      { avg_rent: 3695, crime_rate: 0,   noise_complaints: 2,   parks_nearby: 4, transit_score: 70, nightlife_density: 40, parking_difficulty: 45, walkability: 80, cultural_pois: 25, gym_density: 55, lat: 37.7502, lng: -122.4333 },
