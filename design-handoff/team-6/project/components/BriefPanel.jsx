@@ -90,6 +90,11 @@ function BriefPanel({ prefs, lifestyle, setPrefs, setLifestyle, onReset }) {
                   />
                 ))}
               </div>
+              <div className="nm-life-track-labels" aria-hidden="true">
+                <span>—</span>
+                <span>Some</span>
+                <span>Very</span>
+              </div>
             </div>
           ))}
         </div>

@@ -219,6 +219,19 @@ input[type="range"].nm-range::-moz-range-thumb {
 .nm-life-track button[data-i="0"].on { background: color-mix(in oklab, var(--accent) 30%, white); border-color: var(--accent); }
 .nm-life-track button[data-i="1"].on { background: color-mix(in oklab, var(--accent) 65%, white); border-color: var(--accent); }
 .nm-life-track button[data-i="2"].on { background: var(--accent); border-color: var(--accent); }
+.nm-life-track-labels {
+  display: flex; gap: 4px;
+  margin-top: 3px;
+}
+.nm-life-track-labels span {
+  flex: 1;
+  text-align: center;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-mute);
+  font-weight: var(--w-semi);
+}
 
 .nm-rail-footer {
   margin-top: auto;
