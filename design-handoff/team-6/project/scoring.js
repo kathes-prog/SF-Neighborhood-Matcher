@@ -1,5 +1,5 @@
 // Port of the scoring algorithm in source/index.html.
-// Returns ranked array of { name, score, data, dims, bestFor }.
+// Returns ranked array of { name, score, data, dims, bestFor, weights }.
 
 (function () {
   function haversineKm(lat1, lng1, lat2, lng2) {
@@ -15,8 +15,11 @@
     return Object.entries(data).map(([name, n]) => {
       let rentScore;
       if (n.avg_rent <= prefs.maxRent) rentScore = 100;
-      else if (n.avg_rent >= prefs.maxRent * 1.5) rentScore = 0;
-      else rentScore = 100 * (1 - (n.avg_rent - prefs.maxRent) / (prefs.maxRent * 0.5));
+      else if (n.avg_rent >= prefs.maxRent * 2) rentScore = 0;
+      else {
+        const t = (n.avg_rent - prefs.maxRent) / prefs.maxRent; // 0 at budget → 1 at 2× budget
+        rentScore = 100 * (1 - t) ** 2;
+      }
 
       const safetyScore = 100 - n.crime_rate;
 
@@ -54,7 +57,7 @@
         safety:    0.10 + lifestyleValues['quiet'] * 0.15,
         commute:   isRemote ? 0 : 0.20,
         lifestyle: totalWeight > 0 ? 0.15 + lifestyleEngagement * 0.20 : 0,
-        parking:   prefs.hasCar ? 0.15 : 0.05,
+        parking:   prefs.hasCar ? 0.15 : 0,
       };
       const wTotal = Object.values(rawW).reduce((a, b) => a + b, 0);
       const w = Object.fromEntries(Object.entries(rawW).map(([k, v]) => [k, v / wTotal]));
@@ -83,7 +86,7 @@
       attrs.sort((a, b) => b.val - a.val);
       const bestFor = attrs.slice(0, 2).map(a => a.label).join(' + ');
 
-      return { name, score: final, data: n, dims, bestFor };
+      return { name, score: final, data: n, dims, bestFor, weights: w };
     }).sort((a, b) => b.score - a.score);
   }
 
