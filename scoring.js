@@ -44,7 +44,7 @@
         const w = lifestyleValues[cat.key];
         if (w > 0) { weightedSum += w * dimScores[cat.key]; totalWeight += w; }
       });
-      const lifestyleScore = totalWeight > 0 ? weightedSum / totalWeight : 100;
+      const lifestyleScore = totalWeight > 0 ? weightedSum / totalWeight : 0;
 
       const parkingScore = prefs.hasCar ? (100 - n.parking_difficulty) : 100;
 
@@ -53,7 +53,7 @@
         rent:      0.30,
         safety:    0.10 + lifestyleValues['quiet'] * 0.15,
         commute:   isRemote ? 0 : 0.20,
-        lifestyle: 0.15 + lifestyleEngagement * 0.20,
+        lifestyle: totalWeight > 0 ? 0.15 + lifestyleEngagement * 0.20 : 0,
         parking:   prefs.hasCar ? 0.15 : 0.05,
       };
       const wTotal = Object.values(rawW).reduce((a, b) => a + b, 0);
